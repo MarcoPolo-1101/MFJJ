@@ -1,0 +1,405 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美缝计价</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .input-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .input-item {
+            flex: 1;
+            min-width: 150px;
+        }
+        .input-item input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .input-item input:focus {
+            outline: none;
+            border-color: #4096ff;
+        }
+        .input-item .unit {
+            font-size: 13px;
+            color: #999;
+            margin-top: 5px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .radio-item input {
+            cursor: pointer;
+        }
+        #customProductName {
+            padding: 8px 12px;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-left: 10px;
+            width: 220px;
+            display: none;
+        }
+        #customProductName:focus {
+            outline: none;
+            border-color: #4096ff;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #4096ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #3080e0;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f6f8fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-label {
+            color: #666;
+        }
+        .result-value {
+            font-weight: 500;
+            color: #333;
+        }
+        .recommend {
+            margin-top: 15px;
+            padding: 12px;
+            background: #e6f7ff;
+            border-radius: 8px;
+            text-align: center;
+            color: #0050b3;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>美缝计价</h1>
+    </div>
+
+    <div class="card">
+        <div class="form-group">
+            <label>产品类型</label>
+            <div class="radio-group">
+                <div class="radio-item">
+                    <input type="radio" name="productType" id="polyurea" value="polyurea" checked>
+                    <label for="polyurea">高端型天冬聚脲30年美缝</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" name="productType" id="pureEpoxy" value="pureEpoxy">
+                    <label for="pureEpoxy">高端型纯氢彩砂</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" name="productType" id="customProduct" value="custom">
+                    <label for="customProduct">自定义</label>
+                    <input type="text" id="customProductName" placeholder="请输入产品名称">
+                </div>
+            </div>
+            <div class="product-note" id="productNote" style="font-size: 13px; color: #666; margin-top: 8px; line-height: 1.5;"></div>
+        </div>
+
+        <div class="form-group">
+            <label>美缝单价</label>
+            <div class="input-row">
+                <div class="input-item">
+                    <input type="number" id="pricePerMeter" placeholder="请输入单价" value="0" step="0.01" min="0">
+                    <div class="unit">单位：元/米（可手动修改）</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>瓷砖规格</label>
+            <div class="input-row">
+                <div class="input-item">
+                    <input type="number" id="tileLength" placeholder="长" value="0">
+                    <div class="unit">单位：毫米(mm)</div>
+                </div>
+                <div class="input-item">
+                    <input type="number" id="tileWidth" placeholder="宽" value="0">
+                    <div class="unit">单位：毫米(mm)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>总用砖数</label>
+            <div class="input-row">
+                <div class="input-item">
+                    <input type="number" id="totalTiles" placeholder="请输入总用砖数" value="0">
+                    <div class="unit">单位：片</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>计价方式</label>
+            <div class="radio-group">
+                <div class="radio-item">
+                    <input type="radio" name="inputType" id="inputArea" checked>
+                    <label for="inputArea">按施工面积</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" name="inputType" id="inputCount">
+                    <label for="inputCount">按施工米数</label>
+                </div>
+            </div>
+            <div class="input-item" style="font-size: 16px; color: #333; padding: 12px 0;">
+                <span id="displayValue">施工面积：-- 平米(㎡)</span>
+            </div>
+        </div>
+
+        <button class="btn" id="calcBtn">开始计算</button>
+
+        <div class="result" id="result">
+            <div class="result-item">
+                <span class="result-label">施工总面积</span>
+                <span class="result-value" id="totalArea">-- ㎡</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">瓷砖总片数</span>
+                <span class="result-value" id="totalCount">-- 片</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">美缝总长度</span>
+                <span class="result-value" id="totalM">-- 米</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">施工总价</span>
+                <span class="result-value" id="priceM">-- 元</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">平米单价</span>
+                <span class="result-value" id="pricePerPing">-- 元/㎡</span>
+            </div>
+            <div class="recommend" id="recommend">
+                --
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 产品配置 - 所有产品单价默认均为0
+        const products = {
+            polyurea: { defaultPrice: 0, note: '压缝工艺、可调色、哑光系列产品' },
+            pureEpoxy: { defaultPrice: 0, note: '擦洗平缝工艺。普通环氧彩砂，浅色砖容易发黄、颗粒偏粗易藏灰，更适合深色避光的区域；纯氢彩砂是改良升级款，抗黄变能力强、质感细腻耐污，浅色砖也能使用，全屋大部分区域都适配。' },
+            custom: { defaultPrice: 0, note: '自定义产品类型，可自由设置产品名称与单价' }
+        };
+
+        // 元素获取
+        const productNote = document.getElementById('productNote');
+        const priceInput = document.getElementById('pricePerMeter');
+        const customNameInput = document.getElementById('customProductName');
+        const tileLengthInput = document.getElementById('tileLength');
+        const tileWidthInput = document.getElementById('tileWidth');
+        const totalTilesInput = document.getElementById('totalTiles');
+        const inputAreaRadio = document.getElementById('inputArea');
+        const inputCountRadio = document.getElementById('inputCount');
+        const displayValue = document.getElementById('displayValue');
+        const calcBtn = document.getElementById('calcBtn');
+        const resultDiv = document.getElementById('result');
+        const productRadios = document.querySelectorAll('input[name="productType"]');
+        const inputTypeRadios = document.querySelectorAll('input[name="inputType"]');
+
+        // 更新产品信息
+        function updateProductInfo() {
+            const selected = document.querySelector('input[name="productType"]:checked').value;
+            productNote.innerText = products[selected].note;
+            priceInput.value = products[selected].defaultPrice;
+            
+            // 控制自定义名称输入框显示
+            if (selected === 'custom') {
+                customNameInput.style.display = 'inline-block';
+            } else {
+                customNameInput.style.display = 'none';
+            }
+        }
+
+        // 初始化
+        updateProductInfo();
+
+        // 产品切换事件
+        productRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateProductInfo();
+                resultDiv.classList.remove('show');
+            });
+        });
+
+        // 计价方式切换事件
+        inputTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (inputAreaRadio.checked) {
+                    displayValue.innerText = '施工面积：-- 平米(㎡)';
+                } else {
+                    displayValue.innerText = '施工米数：-- 米';
+                }
+                if (totalTilesInput.value && resultDiv.classList.contains('show')) {
+                    calcBtn.click();
+                }
+            });
+        });
+
+        // 计算按钮
+        calcBtn.addEventListener('click', function() {
+            const lengthMm = parseFloat(tileLengthInput.value);
+            const widthMm = parseFloat(tileWidthInput.value);
+            const totalTiles = parseFloat(totalTilesInput.value);
+            const customPrice = parseFloat(priceInput.value);
+
+            // 输入校验
+            if(isNaN(lengthMm) || lengthMm <=0 || isNaN(widthMm) || widthMm <=0) {
+                alert('请输入正确的瓷砖规格！');
+                return;
+            }
+            if(isNaN(totalTiles) || totalTiles <=0) {
+                alert('请输入正确的总用砖数！');
+                return;
+            }
+            if(isNaN(customPrice) || customPrice <= 0) {
+                alert('请输入正确的美缝单价！');
+                return;
+            }
+
+            // 单位转换
+            const lengthM = lengthMm / 1000;
+            const widthM = widthMm / 1000;
+            const singleTileArea = lengthM * widthM;
+
+            // 核心计算
+            const totalCount = totalTiles;
+            const totalM = totalCount * (lengthM + widthM);
+            const totalArea = totalCount * singleTileArea;
+
+            // 更新预览
+            if(inputAreaRadio.checked) {
+                displayValue.innerText = `施工面积：${totalArea.toFixed(2)} 平米(㎡)`;
+            } else {
+                displayValue.innerText = `施工米数：${totalM.toFixed(2)} 米`;
+            }
+
+            // 价格计算
+            let priceM, pricePerPing;
+            if(inputAreaRadio.checked) {
+                pricePerPing = customPrice * (lengthM + widthM) / (lengthM * widthM);
+                priceM = totalArea * pricePerPing;
+            } else {
+                priceM = totalCount * (lengthM + widthM) * customPrice;
+                pricePerPing = customPrice;
+            }
+
+            // 结果元素
+            const totalAreaEl = document.getElementById('totalArea');
+            const totalCountEl = document.getElementById('totalCount');
+            const totalMEl = document.getElementById('totalM');
+            const priceMEl = document.getElementById('priceM');
+            const pricePerPingEl = document.getElementById('pricePerPing');
+            const recommendEl = document.getElementById('recommend');
+            
+            // 重置显示
+            totalAreaEl.parentElement.style.display = 'flex';
+            totalCountEl.parentElement.style.display = 'flex';
+            totalMEl.parentElement.style.display = 'flex';
+            priceMEl.parentElement.style.display = 'flex';
+            pricePerPingEl.parentElement.style.display = 'flex';
+
+            // 填充结果
+            if(inputAreaRadio.checked) {
+                totalAreaEl.innerText = totalArea.toFixed(2) + ' ㎡';
+                pricePerPingEl.innerText = pricePerPing.toFixed(2) + ' 元/㎡';
+                priceMEl.innerText = priceM.toFixed(2) + ' 元';
+                
+                totalCountEl.parentElement.style.display = 'none';
+                totalMEl.parentElement.style.display = 'none';
+                priceMEl.parentElement.querySelector('.result-label').innerText = '施工总价';
+            } else {
+                totalMEl.innerText = totalM.toFixed(2) + ' 米';
+                pricePerPingEl.innerText = customPrice.toFixed(2) + ' 元/米';
+                priceMEl.innerText = priceM.toFixed(2) + ' 元';
+                
+                totalAreaEl.parentElement.style.display = 'none';
+                totalCountEl.parentElement.style.display = 'none';
+                pricePerPingEl.parentElement.querySelector('.result-label').innerText = '米单价';
+                priceMEl.parentElement.querySelector('.result-label').innerText = '施工总价';
+            }
+            
+            recommendEl.innerText = `已按${inputAreaRadio.checked ? '面积' : '米数'}公式精准计算，基于当前单价核算总价`;
+            resultDiv.classList.add('show');
+        });
+    </script>
+</body></html>
