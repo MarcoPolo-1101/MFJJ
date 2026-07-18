@@ -177,7 +177,7 @@
             <label>美缝单价</label>
             <div class="input-row">
                 <div class="input-item">
-                    <input type="number" id="pricePerMeter" placeholder="请输入单价" value="0" step="0.01" min="0">
+                    <input type="number" id="pricePerMeter" placeholder="请输入单价" value="" step="0.01" min="0">
                     <div class="unit">单位：元/米（可手动修改）</div>
                 </div>
             </div>
@@ -187,11 +187,11 @@
             <label>瓷砖规格</label>
             <div class="input-row">
                 <div class="input-item">
-                    <input type="number" id="tileLength" placeholder="长" value="0">
+                    <input type="number" id="tileLength" placeholder="长" value="">
                     <div class="unit">单位：毫米(mm)</div>
                 </div>
                 <div class="input-item">
-                    <input type="number" id="tileWidth" placeholder="宽" value="0">
+                    <input type="number" id="tileWidth" placeholder="宽" value="">
                     <div class="unit">单位：毫米(mm)</div>
                 </div>
             </div>
@@ -201,7 +201,7 @@
             <label>总用砖数</label>
             <div class="input-row">
                 <div class="input-item">
-                    <input type="number" id="totalTiles" placeholder="请输入总用砖数" value="0">
+                    <input type="number" id="totalTiles" placeholder="请输入总用砖数" value="">
                     <div class="unit">单位：片</div>
                 </div>
             </div>
@@ -254,11 +254,11 @@
     </div>
 
     <script>
-        // 产品配置 - 所有产品单价默认均为0
+        // 产品配置 - 所有产品单价默认为空
         const products = {
-            polyurea: { defaultPrice: 0, note: '压缝工艺、可调色、哑光系列产品' },
-            pureEpoxy: { defaultPrice: 0, note: '擦洗平缝工艺。普通环氧彩砂，浅色砖容易发黄、颗粒偏粗易藏灰，更适合深色避光的区域；纯氢彩砂是改良升级款，抗黄变能力强、质感细腻耐污，浅色砖也能使用，全屋大部分区域都适配。' },
-            custom: { defaultPrice: 0, note: '自定义产品类型，可自由设置产品名称与单价' }
+            polyurea: { defaultPrice: '', note: '压缝工艺、可调色、哑光系列产品' },
+            pureEpoxy: { defaultPrice: '', note: '擦洗平缝工艺。普通环氧彩砂，浅色砖容易发黄、颗粒偏粗易藏灰，更适合深色避光的区域；纯氢彩砂是改良升级款，抗黄变能力强、质感细腻耐污，浅色砖也能使用，全屋大部分区域都适配。' },
+            custom: { defaultPrice: '', note: '自定义产品类型，可自由设置产品名称与单价' }
         };
 
         // 元素获取
