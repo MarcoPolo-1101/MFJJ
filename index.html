@@ -95,8 +95,12 @@
             outline: none;
             border-color: #4096ff;
         }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
         .btn {
-            width: 100%;
+            flex: 1;
             padding: 14px;
             background: #4096ff;
             color: white;
@@ -109,6 +113,21 @@
         }
         .btn:hover {
             background: #3080e0;
+        }
+        .btn-success {
+            background: #52c41a;
+        }
+        .btn-success:hover {
+            background: #389e0d;
+        }
+        .btn-danger {
+            background: #ff4d4f;
+            flex: none;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        .btn-danger:hover {
+            background: #cf1322;
         }
         .result {
             margin-top: 25px;
@@ -144,6 +163,82 @@
             text-align: center;
             color: #0050b3;
             font-weight: 500;
+        }
+
+        /* 记录池样式 */
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .record-header h3 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+        }
+        .record-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .record-item {
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .record-item:last-child {
+            margin-bottom: 0;
+        }
+        .record-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .record-detail {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+        }
+        .record-detail span {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .record-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e1e5e9;
+            text-align: right;
+            font-weight: 500;
+            color: #cf1322;
+        }
+        .summary-bar {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff7e6;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .summary-label {
+            font-size: 15px;
+            color: #874800;
+        }
+        .summary-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #cf1322;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -224,7 +319,10 @@
             </div>
         </div>
 
-        <button class="btn" id="calcBtn">开始计算</button>
+        <div class="btn-group">
+            <button class="btn" id="calcBtn">开始计算</button>
+            <button class="btn btn-success" id="saveBtn">加入记录池</button>
+        </div>
 
         <div class="result" id="result">
             <div class="result-item">
@@ -253,13 +351,32 @@
         </div>
     </div>
 
+    <!-- 记录池 -->
+    <div class="card">
+        <div class="record-header">
+            <h3>记录池</h3>
+            <button class="btn btn-danger" id="clearAllBtn">清空全部</button>
+        </div>
+        <div class="record-list" id="recordList">
+            <div class="empty-tip">暂无记录，计算后点击「加入记录池」保存</div>
+        </div>
+        <div class="summary-bar" id="summaryBar" style="display: none;">
+            <span class="summary-label">合计总价</span>
+            <span class="summary-value" id="totalSummary">0.00 元</span>
+        </div>
+    </div>
+
     <script>
-        // 产品配置 - 所有产品单价默认为空
+        // 产品配置
         const products = {
-            polyurea: { defaultPrice: '', note: '压缝工艺、可调色、哑光系列产品' },
-            pureEpoxy: { defaultPrice: '', note: '擦洗平缝工艺。普通环氧彩砂，浅色砖容易发黄、颗粒偏粗易藏灰，更适合深色避光的区域；纯氢彩砂是改良升级款，抗黄变能力强、质感细腻耐污，浅色砖也能使用，全屋大部分区域都适配。' },
-            custom: { defaultPrice: '', note: '自定义产品类型，可自由设置产品名称与单价' }
+            polyurea: { name: '高端型天冬聚脲30年美缝', defaultPrice: '', note: '压缝工艺、可调色、哑光系列产品' },
+            pureEpoxy: { name: '高端型纯氢彩砂', defaultPrice: '', note: '擦洗平缝工艺。普通环氧彩砂，浅色砖容易发黄、颗粒偏粗易藏灰，更适合深色避光的区域；纯氢彩砂是改良升级款，抗黄变能力强、质感细腻耐污，浅色砖也能使用，全屋大部分区域都适配。' },
+            custom: { name: '自定义', defaultPrice: '', note: '自定义产品类型，可自由设置产品名称与单价' }
         };
+
+        // 记录池数据
+        let recordList = [];
+        let recordId = 0;
 
         // 元素获取
         const productNote = document.getElementById('productNote');
@@ -272,9 +389,17 @@
         const inputCountRadio = document.getElementById('inputCount');
         const displayValue = document.getElementById('displayValue');
         const calcBtn = document.getElementById('calcBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
         const resultDiv = document.getElementById('result');
+        const recordListEl = document.getElementById('recordList');
+        const summaryBar = document.getElementById('summaryBar');
+        const totalSummaryEl = document.getElementById('totalSummary');
         const productRadios = document.querySelectorAll('input[name="productType"]');
         const inputTypeRadios = document.querySelectorAll('input[name="inputType"]');
+
+        // 当前计算结果缓存
+        let currentResult = null;
 
         // 更新产品信息
         function updateProductInfo() {
@@ -282,11 +407,27 @@
             productNote.innerText = products[selected].note;
             priceInput.value = products[selected].defaultPrice;
             
-            // 控制自定义名称输入框显示
             if (selected === 'custom') {
                 customNameInput.style.display = 'inline-block';
             } else {
                 customNameInput.style.display = 'none';
+            }
+        }
+
+        // 清空输入区与结果
+        function clearInputForm() {
+            priceInput.value = '';
+            tileLengthInput.value = '';
+            tileWidthInput.value = '';
+            totalTilesInput.value = '';
+            customNameInput.value = '';
+            resultDiv.classList.remove('show');
+            currentResult = null;
+            // 重置预览文字，保持当前计价方式对应的提示
+            if(inputAreaRadio.checked) {
+                displayValue.innerText = '施工面积：-- 平米(㎡)';
+            } else {
+                displayValue.innerText = '施工米数：-- 米';
             }
         }
 
@@ -298,6 +439,7 @@
             radio.addEventListener('change', function() {
                 updateProductInfo();
                 resultDiv.classList.remove('show');
+                currentResult = null;
             });
         });
 
@@ -346,11 +488,11 @@
             const totalM = totalCount * (lengthM + widthM);
             const totalArea = totalCount * singleTileArea;
 
-            // 更新预览
-            if(inputAreaRadio.checked) {
-                displayValue.innerText = `施工面积：${totalArea.toFixed(2)} 平米(㎡)`;
-            } else {
-                displayValue.innerText = `施工米数：${totalM.toFixed(2)} 米`;
+            // 获取产品名称
+            const selectedType = document.querySelector('input[name="productType"]:checked').value;
+            let productName = products[selectedType].name;
+            if (selectedType === 'custom' && customNameInput.value.trim()) {
+                productName = customNameInput.value.trim();
             }
 
             // 价格计算
@@ -361,6 +503,27 @@
             } else {
                 priceM = totalCount * (lengthM + widthM) * customPrice;
                 pricePerPing = customPrice;
+            }
+
+            // 缓存当前结果
+            currentResult = {
+                productName: productName,
+                tileLength: lengthMm,
+                tileWidth: widthMm,
+                totalTiles: totalTiles,
+                totalArea: totalArea,
+                totalM: totalM,
+                pricePerMeter: customPrice,
+                pricePerPing: pricePerPing,
+                totalPrice: priceM,
+                calcType: inputAreaRadio.checked ? 'area' : 'meter'
+            };
+
+            // 更新预览
+            if(inputAreaRadio.checked) {
+                displayValue.innerText = `施工面积：${totalArea.toFixed(2)} 平米(㎡)`;
+            } else {
+                displayValue.innerText = `施工米数：${totalM.toFixed(2)} 米`;
             }
 
             // 结果元素
@@ -400,6 +563,78 @@
             
             recommendEl.innerText = `已按${inputAreaRadio.checked ? '面积' : '米数'}公式精准计算，基于当前单价核算总价`;
             resultDiv.classList.add('show');
+        });
+
+        // 加入记录池
+        saveBtn.addEventListener('click', function() {
+            if (!currentResult) {
+                alert('请先点击计算后再保存');
+                return;
+            }
+
+            recordId++;
+            const record = {
+                id: recordId,
+                ...currentResult
+            };
+            recordList.push(record);
+            renderRecordList();
+
+            // 保存成功后自动清空输入区，方便录入下一组
+            clearInputForm();
+        });
+
+        // 渲染记录列表
+        function renderRecordList() {
+            if (recordList.length === 0) {
+                recordListEl.innerHTML = '<div class="empty-tip">暂无记录，计算后点击「加入记录池」保存</div>';
+                summaryBar.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            let totalSum = 0;
+
+            recordList.forEach((record, index) => {
+                totalSum += record.totalPrice;
+                html += `
+                    <div class="record-item">
+                        <div class="record-title">
+                            <span>第 ${index + 1} 条 · ${record.productName}</span>
+                            <button class="btn btn-danger" onclick="deleteRecord(${record.id})">删除</button>
+                        </div>
+                        <div class="record-detail">
+                            <span>瓷砖规格：${record.tileLength}×${record.tileWidth}mm</span>
+                            <span>砖数：${record.totalTiles} 片</span>
+                        </div>
+                        <div class="record-detail">
+                            <span>面积：${record.totalArea.toFixed(2)} ㎡</span>
+                            <span>总米数：${record.totalM.toFixed(2)} 米</span>
+                            <span>单价：${record.pricePerMeter.toFixed(2)} 元/米</span>
+                        </div>
+                        <div class="record-total">小计：${record.totalPrice.toFixed(2)} 元</div>
+                    </div>
+                `;
+            });
+
+            recordListEl.innerHTML = html;
+            summaryBar.style.display = 'flex';
+            totalSummaryEl.innerText = totalSum.toFixed(2) + ' 元';
+        }
+
+        // 删除单条记录
+        function deleteRecord(id) {
+            recordList = recordList.filter(item => item.id !== id);
+            renderRecordList();
+        }
+
+        // 清空全部记录
+        clearAllBtn.addEventListener('click', function() {
+            if (recordList.length === 0) return;
+            if (confirm('确定要清空所有记录吗？')) {
+                recordList = [];
+                renderRecordList();
+            }
         });
     </script>
 </body></html>
